@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Сцена - Финальные Этапы</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="page-header" class="ui-element">Хедер</div>
+    <div id="nav-arrows" class="ui-element">
+        <button id="prev-box-btn">&lt; Пред. Бокс</button>
+        <button id="next-box-btn">След. Бокс &gt;</button>
+    </div>
+    <div id="text-panel" class="ui-element">Информация появится здесь...</div>
+    <div id="page-footer" class="ui-element">Футер</div>
+
+    <!-- Three.js и GSAP подключаются через CDN в script.js (или здесь, если предпочитаете) -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> -->
+    <!-- Вместо three.min.js лучше использовать модульную версию, как мы делали -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.157.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.157.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>

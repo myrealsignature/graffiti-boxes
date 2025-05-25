@@ -1,4 +1,7 @@
+// script.js
+
 import * as THREE from 'three';
+
 // GSAP уже подключен в HTML через CDN, поэтому здесь его импортировать не нужно,
 // он будет доступен глобально (window.gsap).
 
@@ -40,14 +43,47 @@ function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xdddddd);
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    // === ВКЛЮЧЕНИЕ ТЕНЕЙ: Начало ===
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Мягкие тени, можно выбрать другие
+    // === ВКЛЮЧЕНИЕ ТЕНЕЙ: Конец ===
     document.body.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9); directionalLight.position.set(20, 50, 30); directionalLight.castShadow = true; scene.add(directionalLight);
-    plane = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ color: 0x008000, side: THREE.DoubleSide })); plane.rotation.x = -Math.PI / 2; plane.receiveShadow = true; scene.add(plane);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // Уменьшаем ambient для контраста теней
+    scene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(50, 80, 40); // Позиция света влияет на направление теней
+    // === НАСТРОЙКА СВЕТА ДЛЯ ТЕНЕЙ: Начало ===
+    directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 2048; // Качество карты теней
+    directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.shadow.camera.near = 0.5;
+    directionalLight.shadow.camera.far = 200; // Должно охватывать вашу сцену
+    directionalLight.shadow.camera.left = -100; // Область видимости камеры тени
+    directionalLight.shadow.camera.right = 100;
+    directionalLight.shadow.camera.top = 100;
+    directionalLight.shadow.camera.bottom = -100;
+    // directionalLight.shadow.bias = -0.001; // Может помочь от "acne"
+    // === НАСТРОЙКА СВЕТА ДЛЯ ТЕНЕЙ: Конец ===
+    scene.add(directionalLight);
+
+    // Опциональный хелпер для отладки камеры тени
+    // const shadowCamHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
+    // scene.add(shadowCamHelper);
+
+    plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(200, 200),
+        new THREE.MeshStandardMaterial({ color: 0x008000, side: THREE.DoubleSide })
+    );
+    plane.rotation.x = -Math.PI / 2;
+    // === ПОЛУЧЕНИЕ ТЕНЕЙ ПОЛОМ: Начало ===
+    plane.receiveShadow = true;
+    // === ПОЛУЧЕНИЕ ТЕНЕЙ ПОЛОМ: Конец ===
+    scene.add(plane);
 
     circleCenterPoint = new THREE.Vector3(0, boxHeight / 2, 0);
     const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
@@ -59,7 +95,14 @@ function init() {
         const box = new THREE.Mesh(boxGeometry, boxMaterial.clone());
         const angle = startAngle + i * angleStep;
         box.position.set( circleCenterPoint.x + arcRadius * Math.sin(angle), boxHeight / 2, circleCenterPoint.z + arcRadius * Math.cos(angle) );
-        box.castShadow = true; box.userData.id = i + 1; box.userData.initialRotationY = box.rotation.y; scene.add(box); allBoxes.push(box);
+        // === ОТБРАСЫВАНИЕ ТЕНЕЙ БОКСАМИ: Начало ===
+        box.castShadow = true;
+        // box.receiveShadow = true; // Если боксы должны получать тени друг от друга
+        // === ОТБРАСЫВАНИЕ ТЕНЕЙ БОКСАМИ: Конец ===
+        box.userData.id = i + 1; 
+        box.userData.initialRotationY = box.rotation.y; 
+        scene.add(box); 
+        allBoxes.push(box);
     }
 
     arcFocusTarget = (numActualBoxes > 0) ? new THREE.Vector3(circleCenterPoint.x, boxHeight / 2, circleCenterPoint.z + arcRadius) : new THREE.Vector3(0, boxHeight / 2, 0);
@@ -124,6 +167,7 @@ function setScrollThreshold(nextViewIdx, currentViewIdx) {
     else {
         currentScrollThreshold = window.innerHeight;
     }
+    // console.log(`Threshold: ${currentScrollThreshold.toFixed(0)} (${currentView ? currentView.name : 'Start'} -> ${nextView.name})`);
 }
 
 function setCameraToView(viewIndex, instant = false) {
@@ -300,5 +344,5 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-// Запускаем инициализацию, когда DOM готов (не обязательно, но хорошая практика)
+// Запускаем инициализацию, когда DOM готов
 document.addEventListener('DOMContentLoaded', init);
